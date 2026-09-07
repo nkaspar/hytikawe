@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Search - RecipeDB{% endblock %}
+
+{% block content %}
+<h2>Search recipes</h2>
+<form action="{{ url_for('find_recipe') }}" method="get">
+  <label for="query">Keyword</label>
+  <input id="query" name="query" type="search" value="{{ query }}" required />
+  <button type="submit">Search</button>
+</form>
+
+{% if query %}
+<h3>Results for &quot;{{ query }}&quot;</h3>
+{% if recipes %}
+<ul class="recipe-list">
+  {% for recipe in recipes %}
+  <li>
+    <a href="{{ url_for('show_recipe', recipe_id=recipe.id) }}">{{ recipe.title }}</a>
+    by {{ recipe.username }}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No matching recipes found.</p>
+{% endif %}
+{% endif %}
+{% endblock %}

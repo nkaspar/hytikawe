@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - RecipeDB{% endblock %}
+
+{% block content %}
+<h2>{{ user.username }}</h2>
+<p>Recipes added: {{ recipes | length }}</p>
+
+{% if recipes %}
+<ul class="recipe-list">
+  {% for recipe in recipes %}
+  <li><a href="{{ url_for('show_recipe', recipe_id=recipe.id) }}">{{ recipe.title }}</a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>This user has not added any recipes.</p>
+{% endif %}
+{% endblock %}

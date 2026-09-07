@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} - RecipeDB{% endblock %}
+
+{% block content %}
+<h2>{{ recipe.title }}</h2>
+<p>Added by <a href="{{ url_for('show_user', user_id=recipe.user_id) }}">{{ recipe.username }}</a></p>
+
+<h3>Ingredients</h3>
+<p class="multiline">{{ recipe.ingredients }}</p>
+
+<h3>Instructions</h3>
+<p class="multiline">{{ recipe.instructions }}</p>
+
+{% if session.user_id == recipe.user_id %}
+<p>
+  <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}">Edit recipe</a>
+  <a href="{{ url_for('remove_recipe', recipe_id=recipe.id) }}">Delete recipe</a>
+</p>
+{% endif %}
+{% endblock %}

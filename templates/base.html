@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}RecipeDB{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
+</head>
+
+<body>
+  <header>
+    <h1><a href="{{ url_for('index') }}">RecipeDB</a></h1>
+    <nav>
+      <a href="{{ url_for('index') }}">Recipes</a>
+      <a href="{{ url_for('find_recipe') }}">Search</a>
+      {% if session.user_id %}
+      <a href="{{ url_for('new_recipe') }}">Add recipe</a>
+      <a href="{{ url_for('show_user', user_id=session.user_id) }}">Profile</a>
+      <a href="{{ url_for('logout') }}">Log out</a>
+      {% else %}
+      <a href="{{ url_for('register') }}">Register</a>
+      <a href="{{ url_for('login') }}">Log in</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% for message in get_flashed_messages() %}
+  <p class="message">{{ message }}</p>
+  {% endfor %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+
+</html>

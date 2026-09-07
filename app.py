@@ -1,7 +1,183 @@
+import os
+import sqlite3
+
 from flask import Flask
+from flask import abort, flash, redirect, render_template, request, session
+
+import recipes
+import users
+
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "development-secret-key")
+
+
+def require_login():
+    if "user_id" not in session:
+        abort(403)
+
+
+def get_recipe_for_user(recipe_id):
+    recipe = recipes.get_recipe(recipe_id)
+    if not recipe:
+        abort(404)
+    if recipe["user_id"] != session["user_id"]:
+        abort(403)
+    return recipe
+
+
+def valid_text(value, maximum_length):
+    return bool(value and value.strip() and len(value) <= maximum_length)
+
 
 @app.route("/")
 def index():
-    return "Heipparallaa!"
+    all_recipes = recipes.get_recipes()
+    return render_template("index.html", recipes=all_recipes)
+
+
+@app.route("/user/<int:user_id>")
+def show_user(user_id):
+    user = users.get_user(user_id)
+    if not user:
+        abort(404)
+    user_recipes = users.get_recipes(user_id)
+    return render_template("show_user.html", user=user, recipes=user_recipes)
+
+
+@app.route("/find_recipe")
+def find_recipe():
+    query = request.args.get("query", "").strip()
+    results = recipes.find_recipes(query) if query else []
+    return render_template("find_recipe.html", query=query, recipes=results)
+
+
+@app.route("/recipe/<int:recipe_id>")
+def show_recipe(recipe_id):
+    recipe = recipes.get_recipe(recipe_id)
+    if not recipe:
+        abort(404)
+    return render_template("show_recipe.html", recipe=recipe)
+
+
+@app.route("/new_recipe")
+def new_recipe():
+    require_login()
+    return render_template("new_recipe.html")
+
+
+@app.route("/create_recipe", methods=["POST"])
+def create_recipe():
+    require_login()
+
+    title = request.form.get("title", "").strip()
+    ingredients = request.form.get("ingredients", "").strip()
+    instructions = request.form.get("instructions", "").strip()
+    if not valid_text(title, 100):
+        flash("Title is required and must be at most 100 characters.")
+        return redirect("/new_recipe")
+    if not valid_text(ingredients, 5000):
+        flash("Ingredients are required and must be at most 5000 characters.")
+        return redirect("/new_recipe")
+    if not valid_text(instructions, 10000):
+        flash("Instructions are required and must be at most 10000 characters.")
+        return redirect("/new_recipe")
+
+    recipe_id = recipes.add_recipe(
+        title, ingredients, instructions, session["user_id"]
+    )
+    return redirect("/recipe/" + str(recipe_id))
+
+
+@app.route("/edit_recipe/<int:recipe_id>")
+def edit_recipe(recipe_id):
+    require_login()
+    recipe = get_recipe_for_user(recipe_id)
+    return render_template("edit_recipe.html", recipe=recipe)
+
+
+@app.route("/update_recipe", methods=["POST"])
+def update_recipe():
+    require_login()
+
+    recipe_id = request.form.get("recipe_id", type=int)
+    if recipe_id is None:
+        abort(403)
+    get_recipe_for_user(recipe_id)
+
+    title = request.form.get("title", "").strip()
+    ingredients = request.form.get("ingredients", "").strip()
+    instructions = request.form.get("instructions", "").strip()
+    if not valid_text(title, 100):
+        flash("Title is required and must be at most 100 characters.")
+        return redirect("/edit_recipe/" + str(recipe_id))
+    if not valid_text(ingredients, 5000):
+        flash("Ingredients are required and must be at most 5000 characters.")
+        return redirect("/edit_recipe/" + str(recipe_id))
+    if not valid_text(instructions, 10000):
+        flash("Instructions are required and must be at most 10000 characters.")
+        return redirect("/edit_recipe/" + str(recipe_id))
+
+    recipes.update_recipe(recipe_id, title, ingredients, instructions)
+    return redirect("/recipe/" + str(recipe_id))
+
+
+@app.route("/remove_recipe/<int:recipe_id>", methods=["GET", "POST"])
+def remove_recipe(recipe_id):
+    require_login()
+    recipe = get_recipe_for_user(recipe_id)
+
+    if request.method == "GET":
+        return render_template("remove_recipe.html", recipe=recipe)
+
+    recipes.remove_recipe(recipe_id)
+    return redirect("/")
+
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
+
+
+@app.route("/create", methods=["POST"])
+def create():
+    username = request.form.get("username", "").strip()
+    password1 = request.form.get("password1", "")
+    password2 = request.form.get("password2", "")
+    if not valid_text(username, 30) or not password1:
+        flash("Username and password are required.")
+        return redirect("/register")
+    if password1 != password2:
+        flash("The passwords do not match.")
+        return redirect("/register")
+
+    try:
+        users.create_user(username, password1)
+    except sqlite3.IntegrityError:
+        flash("That username is already taken.")
+        return redirect("/register")
+
+    return redirect("/login")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+    user_id = users.check_login(username, password)
+    if user_id:
+        session["user_id"] = user_id
+        session["username"] = username
+        return redirect("/")
+
+    flash("Invalid username or password.")
+    return redirect("/login")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")

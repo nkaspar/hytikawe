@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Add recipe - RecipeDB{% endblock %}
+
+{% block content %}
+<h2>Add recipe</h2>
+<form action="{{ url_for('create_recipe') }}" method="post">
+  <label for="title">Title</label>
+  <input id="title" name="title" type="text" maxlength="100" required />
+
+  <label for="ingredients">Ingredients</label>
+  <textarea id="ingredients" name="ingredients" maxlength="5000" required></textarea>
+
+  <label for="instructions">Instructions</label>
+  <textarea id="instructions" name="instructions" maxlength="10000" required></textarea>
+
+  <button type="submit">Add recipe</button>
+</form>
+{% endblock %}
