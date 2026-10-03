@@ -17,7 +17,10 @@
       {% if session.user_id %}
       <a href="{{ url_for('new_recipe') }}">Add recipe</a>
       <a href="{{ url_for('show_user', user_id=session.user_id) }}">Profile</a>
-      <a href="{{ url_for('logout') }}">Log out</a>
+      <form action="{{ url_for('logout') }}" method="post" class="logout-form">
+        <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
+        <button type="submit">Log out</button>
+      </form>
       {% else %}
       <a href="{{ url_for('register') }}">Register</a>
       <a href="{{ url_for('login') }}">Log in</a>

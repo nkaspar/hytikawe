@@ -1,4 +1,5 @@
 import os
+import secrets
 import sqlite3
 
 from flask import Flask
@@ -10,6 +11,12 @@ import users
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "development-secret-key")
+
+
+@app.before_request
+def ensure_csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(16)
 
 
 def require_login():
@@ -28,6 +35,11 @@ def get_recipe_for_user(recipe_id):
 
 def valid_text(value, maximum_length):
     return bool(value and value.strip() and len(value) <= maximum_length)
+
+
+def check_csrf():
+    if session.get("csrf_token") != request.form.get("csrf_token"):
+        abort(403)
 
 
 def get_class_ids():
@@ -84,6 +96,7 @@ def new_recipe():
 @app.route("/create_recipe", methods=["POST"])
 def create_recipe():
     require_login()
+    check_csrf()
 
     title = request.form.get("title", "").strip()
     ingredients = request.form.get("ingredients", "").strip()
@@ -125,6 +138,7 @@ def edit_recipe(recipe_id):
 @app.route("/update_recipe", methods=["POST"])
 def update_recipe():
     require_login()
+    check_csrf()
 
     recipe_id = request.form.get("recipe_id", type=int)
     if recipe_id is None:
@@ -160,6 +174,7 @@ def remove_recipe(recipe_id):
     if request.method == "GET":
         return render_template("remove_recipe.html", recipe=recipe)
 
+    check_csrf()
     recipes.remove_recipe(recipe_id)
     return redirect("/")
 
@@ -167,6 +182,7 @@ def remove_recipe(recipe_id):
 @app.route("/add_comment", methods=["POST"])
 def add_comment():
     require_login()
+    check_csrf()
     recipe_id = request.form.get("recipe_id", type=int)
     if recipe_id is None:
         abort(403)
@@ -193,6 +209,7 @@ def register():
 
 @app.route("/create", methods=["POST"])
 def create():
+    check_csrf()
     username = request.form.get("username", "").strip()
     password1 = request.form.get("password1", "")
     password2 = request.form.get("password2", "")
@@ -217,19 +234,24 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
+    check_csrf()
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     user_id = users.check_login(username, password)
     if user_id:
+        session.clear()
         session["user_id"] = user_id
         session["username"] = username
+        session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
 
     flash("Invalid username or password.")
     return redirect("/login")
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
+    require_login()
+    check_csrf()
     session.clear()
     return redirect("/")

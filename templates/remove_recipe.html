@@ -6,6 +6,7 @@
 <h2>Delete recipe</h2>
 <p>Delete &quot;{{ recipe.title }}&quot;?</p>
 <form action="{{ url_for('remove_recipe', recipe_id=recipe.id) }}" method="post">
+  <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
   <button type="submit">Delete recipe</button>
   <a href="{{ url_for('show_recipe', recipe_id=recipe.id) }}">Cancel</a>
 </form>
