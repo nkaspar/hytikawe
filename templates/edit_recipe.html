@@ -4,6 +4,9 @@
 
 {% block content %}
 <h2>Edit recipe</h2>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 <form action="{{ url_for('update_recipe') }}" method="post">
   <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
   <input name="recipe_id" type="hidden" value="{{ recipe.id }}" />

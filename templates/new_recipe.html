@@ -4,23 +4,27 @@
 
 {% block content %}
 <h2>Add recipe</h2>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 <form action="{{ url_for('create_recipe') }}" method="post">
   <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
 
   <label for="title">Title</label>
-  <input id="title" name="title" type="text" maxlength="100" required />
+  <input id="title" name="title" type="text" maxlength="100" value="{{ recipe.title }}" required />
 
   <label for="ingredients">Ingredients</label>
-  <textarea id="ingredients" name="ingredients" maxlength="5000" required></textarea>
+  <textarea id="ingredients" name="ingredients" maxlength="5000" required>{{ recipe.ingredients }}</textarea>
 
   <label for="instructions">Instructions</label>
-  <textarea id="instructions" name="instructions" maxlength="10000" required></textarea>
+  <textarea id="instructions" name="instructions" maxlength="10000" required>{{ recipe.instructions }}</textarea>
 
   <fieldset>
     <legend>Classifications</legend>
     {% for class in classes %}
     <label>
-      <input name="class_ids" type="checkbox" value="{{ class.id }}" />
+      <input name="class_ids" type="checkbox" value="{{ class.id }}"
+        {% if class.id in selected_class_ids %}checked{% endif %} />
       {{ class.title }}: {{ class.value }}
     </label>
     {% endfor %}

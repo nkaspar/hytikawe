@@ -34,12 +34,15 @@
 {% endif %}
 
 {% if session.user_id and session.user_id != recipe.user_id %}
+{% if comment_error %}
+<p class="error">{{ comment_error }}</p>
+{% endif %}
 <form action="{{ url_for('add_comment') }}" method="post">
   <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
   <input name="recipe_id" type="hidden" value="{{ recipe.id }}" />
 
   <label for="content">Add a note</label>
-  <textarea id="content" name="content" maxlength="1000" required></textarea>
+  <textarea id="content" name="content" maxlength="1000" required>{{ comment_content }}</textarea>
 
   <button type="submit">Add note</button>
 </form>

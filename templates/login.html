@@ -4,11 +4,14 @@
 
 {% block content %}
 <h2>Log in</h2>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 <form action="{{ url_for('login') }}" method="post">
   <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
 
   <label for="username">Username</label>
-  <input id="username" name="username" type="text" required />
+  <input id="username" name="username" type="text" value="{{ username }}" required />
 
   <label for="password">Password</label>
   <input id="password" name="password" type="password" required />

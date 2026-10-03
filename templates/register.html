@@ -4,11 +4,14 @@
 
 {% block content %}
 <h2>Create an account</h2>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 <form action="{{ url_for('create') }}" method="post">
   <input name="csrf_token" type="hidden" value="{{ session.csrf_token }}" />
 
   <label for="username">Username</label>
-  <input id="username" name="username" type="text" maxlength="30" required />
+  <input id="username" name="username" type="text" maxlength="30" value="{{ username }}" required />
 
   <label for="password1">Password</label>
   <input id="password1" name="password1" type="password" required />
