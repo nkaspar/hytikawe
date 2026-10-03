@@ -12,6 +12,13 @@
 <h3>Instructions</h3>
 <p class="multiline">{{ recipe.instructions }}</p>
 
+<h3>Classifications</h3>
+<ul>
+  {% for class in classes %}
+  <li>{{ class.title }}: {{ class.value }}</li>
+  {% endfor %}
+</ul>
+
 {% if session.user_id == recipe.user_id %}
 <p>
   <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}">Edit recipe</a>

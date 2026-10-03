@@ -30,6 +30,16 @@ def valid_text(value, maximum_length):
     return bool(value and value.strip() and len(value) <= maximum_length)
 
 
+def get_class_ids():
+    class_ids = []
+    for value in request.form.getlist("class_ids"):
+        try:
+            class_ids.append(int(value))
+        except ValueError:
+            return None
+    return class_ids
+
+
 @app.route("/")
 def index():
     all_recipes = recipes.get_recipes()
@@ -57,13 +67,15 @@ def show_recipe(recipe_id):
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
-    return render_template("show_recipe.html", recipe=recipe)
+    classes = recipes.get_recipe_classes(recipe_id)
+    return render_template("show_recipe.html", recipe=recipe, classes=classes)
 
 
 @app.route("/new_recipe")
 def new_recipe():
     require_login()
-    return render_template("new_recipe.html")
+    classes = recipes.get_classes()
+    return render_template("new_recipe.html", classes=classes)
 
 
 @app.route("/create_recipe", methods=["POST"])
@@ -73,6 +85,7 @@ def create_recipe():
     title = request.form.get("title", "").strip()
     ingredients = request.form.get("ingredients", "").strip()
     instructions = request.form.get("instructions", "").strip()
+    class_ids = get_class_ids()
     if not valid_text(title, 100):
         flash("Title is required and must be at most 100 characters.")
         return redirect("/new_recipe")
@@ -82,9 +95,12 @@ def create_recipe():
     if not valid_text(instructions, 10000):
         flash("Instructions are required and must be at most 10000 characters.")
         return redirect("/new_recipe")
+    if not class_ids or not recipes.class_ids_exist(class_ids):
+        flash("Select at least one valid classification.")
+        return redirect("/new_recipe")
 
     recipe_id = recipes.add_recipe(
-        title, ingredients, instructions, session["user_id"]
+        title, ingredients, instructions, session["user_id"], class_ids
     )
     return redirect("/recipe/" + str(recipe_id))
 
@@ -93,7 +109,14 @@ def create_recipe():
 def edit_recipe(recipe_id):
     require_login()
     recipe = get_recipe_for_user(recipe_id)
-    return render_template("edit_recipe.html", recipe=recipe)
+    classes = recipes.get_classes()
+    selected_class_ids = [item["id"] for item in recipes.get_recipe_classes(recipe_id)]
+    return render_template(
+        "edit_recipe.html",
+        recipe=recipe,
+        classes=classes,
+        selected_class_ids=selected_class_ids,
+    )
 
 
 @app.route("/update_recipe", methods=["POST"])
@@ -108,6 +131,7 @@ def update_recipe():
     title = request.form.get("title", "").strip()
     ingredients = request.form.get("ingredients", "").strip()
     instructions = request.form.get("instructions", "").strip()
+    class_ids = get_class_ids()
     if not valid_text(title, 100):
         flash("Title is required and must be at most 100 characters.")
         return redirect("/edit_recipe/" + str(recipe_id))
@@ -117,8 +141,11 @@ def update_recipe():
     if not valid_text(instructions, 10000):
         flash("Instructions are required and must be at most 10000 characters.")
         return redirect("/edit_recipe/" + str(recipe_id))
+    if not class_ids or not recipes.class_ids_exist(class_ids):
+        flash("Select at least one valid classification.")
+        return redirect("/edit_recipe/" + str(recipe_id))
 
-    recipes.update_recipe(recipe_id, title, ingredients, instructions)
+    recipes.update_recipe(recipe_id, title, ingredients, instructions, class_ids)
     return redirect("/recipe/" + str(recipe_id))
 
 

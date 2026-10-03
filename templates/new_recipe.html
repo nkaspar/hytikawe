@@ -14,6 +14,16 @@
   <label for="instructions">Instructions</label>
   <textarea id="instructions" name="instructions" maxlength="10000" required></textarea>
 
+  <fieldset>
+    <legend>Classifications</legend>
+    {% for class in classes %}
+    <label>
+      <input name="class_ids" type="checkbox" value="{{ class.id }}" />
+      {{ class.title }}: {{ class.value }}
+    </label>
+    {% endfor %}
+  </fieldset>
+
   <button type="submit">Add recipe</button>
 </form>
 {% endblock %}

@@ -16,6 +16,17 @@
   <label for="instructions">Instructions</label>
   <textarea id="instructions" name="instructions" maxlength="10000" required>{{ recipe.instructions }}</textarea>
 
+  <fieldset>
+    <legend>Classifications</legend>
+    {% for class in classes %}
+    <label>
+      <input name="class_ids" type="checkbox" value="{{ class.id }}"
+        {% if class.id in selected_class_ids %}checked{% endif %} />
+      {{ class.title }}: {{ class.value }}
+    </label>
+    {% endfor %}
+  </fieldset>
+
   <button type="submit">Save changes</button>
 </form>
 {% endblock %}
