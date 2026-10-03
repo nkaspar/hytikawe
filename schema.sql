@@ -14,10 +14,9 @@ CREATE TABLE recipes (
 
 CREATE TABLE comments (
     id INTEGER PRIMARY KEY,
-    content TEXT,
-    rating INTEGER,
-    recipe_id INTEGER REFERENCES recipes,
-    user_id INTEGER REFERENCES users
+    content TEXT NOT NULL,
+    recipe_id INTEGER NOT NULL REFERENCES recipes ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users
 );
 
 CREATE TABLE classes (

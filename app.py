@@ -68,7 +68,10 @@ def show_recipe(recipe_id):
     if not recipe:
         abort(404)
     classes = recipes.get_recipe_classes(recipe_id)
-    return render_template("show_recipe.html", recipe=recipe, classes=classes)
+    comments = recipes.get_comments(recipe_id)
+    return render_template(
+        "show_recipe.html", recipe=recipe, classes=classes, comments=comments
+    )
 
 
 @app.route("/new_recipe")
@@ -159,6 +162,28 @@ def remove_recipe(recipe_id):
 
     recipes.remove_recipe(recipe_id)
     return redirect("/")
+
+
+@app.route("/add_comment", methods=["POST"])
+def add_comment():
+    require_login()
+    recipe_id = request.form.get("recipe_id", type=int)
+    if recipe_id is None:
+        abort(403)
+
+    recipe = recipes.get_recipe(recipe_id)
+    if not recipe:
+        abort(404)
+    if recipe["user_id"] == session["user_id"]:
+        abort(403)
+
+    content = request.form.get("content", "").strip()
+    if not valid_text(content, 1000):
+        flash("Comment is required and must be at most 1000 characters.")
+        return redirect("/recipe/" + str(recipe_id))
+
+    recipes.add_comment(content, recipe_id, session["user_id"])
+    return redirect("/recipe/" + str(recipe_id))
 
 
 @app.route("/register")

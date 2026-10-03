@@ -34,6 +34,16 @@ def get_recipe_classes(recipe_id):
     return db.query(sql, [recipe_id])
 
 
+def get_comments(recipe_id):
+    sql = """SELECT comments.id, comments.content, comments.user_id,
+                    users.username
+             FROM comments, users
+             WHERE comments.user_id = users.id
+             AND comments.recipe_id = ?
+             ORDER BY comments.id DESC"""
+    return db.query(sql, [recipe_id])
+
+
 def class_ids_exist(class_ids):
     placeholders = ", ".join("?" for _ in class_ids)
     sql = "SELECT id FROM classes WHERE id IN (" + placeholders + ")"
@@ -77,6 +87,12 @@ def set_recipe_classes(recipe_id, class_ids):
              VALUES (?, ?)"""
     for class_id in class_ids:
         db.execute(sql, [recipe_id, class_id])
+
+
+def add_comment(content, recipe_id, user_id):
+    sql = """INSERT INTO comments (content, recipe_id, user_id)
+             VALUES (?, ?, ?)"""
+    db.execute(sql, [content, recipe_id, user_id])
 
 
 def remove_recipe(recipe_id):

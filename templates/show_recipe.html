@@ -19,6 +19,31 @@
   {% endfor %}
 </ul>
 
+<h3>Notes</h3>
+{% if comments %}
+<ul>
+  {% for comment in comments %}
+  <li>
+    <strong>{{ comment.username }}</strong>
+    <p class="multiline">{{ comment.content }}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No notes have been added yet.</p>
+{% endif %}
+
+{% if session.user_id and session.user_id != recipe.user_id %}
+<form action="{{ url_for('add_comment') }}" method="post">
+  <input name="recipe_id" type="hidden" value="{{ recipe.id }}" />
+
+  <label for="content">Add a note</label>
+  <textarea id="content" name="content" maxlength="1000" required></textarea>
+
+  <button type="submit">Add note</button>
+</form>
+{% endif %}
+
 {% if session.user_id == recipe.user_id %}
 <p>
   <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}">Edit recipe</a>
