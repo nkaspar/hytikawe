@@ -1,12 +1,13 @@
 import db
 
 
-def get_recipes():
+def get_recipes(limit, offset):
     sql = """SELECT recipes.id, recipes.title, recipes.user_id, users.username
              FROM recipes, users
              WHERE recipes.user_id = users.id
-             ORDER BY recipes.id DESC"""
-    return db.query(sql)
+             ORDER BY recipes.id DESC
+             LIMIT ? OFFSET ?"""
+    return db.query(sql, [limit, offset])
 
 
 def get_recipe(recipe_id):
@@ -50,16 +51,17 @@ def class_ids_exist(class_ids):
     return len(db.query(sql, class_ids)) == len(class_ids)
 
 
-def find_recipes(query):
+def find_recipes(query, limit, offset):
     sql = """SELECT recipes.id, recipes.title, recipes.user_id, users.username
              FROM recipes, users
              WHERE recipes.user_id = users.id
              AND (recipes.title LIKE ?
                   OR recipes.ingredients LIKE ?
                   OR recipes.instructions LIKE ?)
-             ORDER BY recipes.id DESC"""
+             ORDER BY recipes.id DESC
+             LIMIT ? OFFSET ?"""
     search = "%" + query + "%"
-    return db.query(sql, [search, search, search])
+    return db.query(sql, [search, search, search, limit, offset])
 
 
 def add_recipe(title, ingredients, instructions, user_id, class_ids):

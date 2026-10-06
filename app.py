@@ -11,6 +11,7 @@ import users
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "development-secret-key")
+PAGE_SIZE = 20
 
 
 @app.before_request
@@ -22,6 +23,19 @@ def ensure_csrf_token():
 def require_login():
     if "user_id" not in session:
         abort(403)
+
+
+def get_page_number():
+    page = request.args.get("page", default=1, type=int)
+    if page is None or page < 1:
+        abort(404)
+    return page
+
+
+def get_page_items(items, page):
+    previous_page = page - 1 if page > 1 else None
+    next_page = page + 1 if len(items) > PAGE_SIZE else None
+    return items[:PAGE_SIZE], previous_page, next_page
 
 
 def get_recipe_for_user(recipe_id):
@@ -109,8 +123,15 @@ def render_recipe_page(recipe, comment_content="", comment_error=None):
 
 @app.route("/")
 def index():
-    all_recipes = recipes.get_recipes()
-    return render_template("index.html", recipes=all_recipes)
+    page = get_page_number()
+    all_recipes = recipes.get_recipes(PAGE_SIZE + 1, (page - 1) * PAGE_SIZE)
+    page_recipes, previous_page, next_page = get_page_items(all_recipes, page)
+    return render_template(
+        "index.html",
+        recipes=page_recipes,
+        previous_page=previous_page,
+        next_page=next_page,
+    )
 
 
 @app.route("/user/<int:user_id>")
@@ -118,15 +139,39 @@ def show_user(user_id):
     user = users.get_user(user_id)
     if not user:
         abort(404)
-    user_recipes = users.get_recipes(user_id)
-    return render_template("show_user.html", user=user, recipes=user_recipes)
+    page = get_page_number()
+    user_recipes = users.get_recipes(
+        user_id, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE
+    )
+    page_recipes, previous_page, next_page = get_page_items(user_recipes, page)
+    recipe_count = users.count_recipes(user_id)
+    return render_template(
+        "show_user.html",
+        user=user,
+        recipes=page_recipes,
+        recipe_count=recipe_count,
+        previous_page=previous_page,
+        next_page=next_page,
+    )
 
 
 @app.route("/find_recipe")
 def find_recipe():
     query = request.args.get("query", "").strip()
-    results = recipes.find_recipes(query) if query else []
-    return render_template("find_recipe.html", query=query, recipes=results)
+    page = get_page_number()
+    results = (
+        recipes.find_recipes(query, PAGE_SIZE + 1, (page - 1) * PAGE_SIZE)
+        if query
+        else []
+    )
+    page_recipes, previous_page, next_page = get_page_items(results, page)
+    return render_template(
+        "find_recipe.html",
+        query=query,
+        recipes=page_recipes,
+        previous_page=previous_page,
+        next_page=next_page,
+    )
 
 
 @app.route("/recipe/<int:recipe_id>")

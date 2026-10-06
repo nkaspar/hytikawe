@@ -17,4 +17,15 @@
 {% else %}
 <p>No recipes have been added yet.</p>
 {% endif %}
+
+{% if previous_page or next_page %}
+<p>
+  {% if previous_page %}
+  <a href="{{ url_for('index', page=previous_page) }}">Previous</a>
+  {% endif %}
+  {% if next_page %}
+  <a href="{{ url_for('index', page=next_page) }}">Next</a>
+  {% endif %}
+</p>
+{% endif %}
 {% endblock %}

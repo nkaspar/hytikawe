@@ -24,5 +24,16 @@
 {% else %}
 <p>No matching recipes found.</p>
 {% endif %}
+
+{% if previous_page or next_page %}
+<p>
+  {% if previous_page %}
+  <a href="{{ url_for('find_recipe', query=query, page=previous_page) }}">Previous</a>
+  {% endif %}
+  {% if next_page %}
+  <a href="{{ url_for('find_recipe', query=query, page=next_page) }}">Next</a>
+  {% endif %}
+</p>
+{% endif %}
 {% endif %}
 {% endblock %}

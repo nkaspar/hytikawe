@@ -4,7 +4,7 @@
 
 {% block content %}
 <h2>{{ user.username }}</h2>
-<p>Recipes added: {{ recipes | length }}</p>
+<p>Recipes added: {{ recipe_count }}</p>
 
 {% if recipes %}
 <ul class="recipe-list">
@@ -14,5 +14,16 @@
 </ul>
 {% else %}
 <p>This user has not added any recipes.</p>
+{% endif %}
+
+{% if previous_page or next_page %}
+<p>
+  {% if previous_page %}
+  <a href="{{ url_for('show_user', user_id=user.id, page=previous_page) }}">Previous</a>
+  {% endif %}
+  {% if next_page %}
+  <a href="{{ url_for('show_user', user_id=user.id, page=next_page) }}">Next</a>
+  {% endif %}
+</p>
 {% endif %}
 {% endblock %}
