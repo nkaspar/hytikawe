@@ -8,6 +8,8 @@
 - Käyttäjä näkee sovellukseen lisätyt reseptit.
 - Käyttäjä pystyy etsimään reseptejä hakusanalla.
 - Hakusanaa voi etsiä reseptin otsikosta, aineksista tai valmistusohjeesta.
+- Käyttäjä pystyy valitsemaan reseptille yhden tai useamman luokittelun. Mahdolliset luokat ovat tietokannassa.
+- Käyttäjä pystyy lisäämään toisen käyttäjän reseptiin muistiinpanon, joka näkyy reseptisivulla.
 - Sovelluksessa on käyttäjäsivut, jotka näyttävät käyttäjän lisäämät reseptit ja reseptien määrän.
 
 ## Sovelluksen asennus
