@@ -224,8 +224,6 @@ def add_comment():
     recipe = recipes.get_recipe(recipe_id)
     if not recipe:
         abort(404)
-    if recipe["user_id"] == session["user_id"]:
-        abort(403)
 
     content = request.form.get("content", "").strip()
     error = validate_text(content, "Note", 1000)

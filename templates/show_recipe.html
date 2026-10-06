@@ -33,7 +33,7 @@
 <p>No notes have been added yet.</p>
 {% endif %}
 
-{% if session.user_id and session.user_id != recipe.user_id %}
+{% if session.user_id %}
 {% if comment_error %}
 <p class="error">{{ comment_error }}</p>
 {% endif %}
