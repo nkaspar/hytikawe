@@ -12,6 +12,8 @@ CREATE TABLE recipes (
     user_id INTEGER REFERENCES users
 );
 
+CREATE INDEX idx_recipes_user_id ON recipes(user_id);
+
 CREATE TABLE comments (
     id INTEGER PRIMARY KEY,
     content TEXT NOT NULL,
